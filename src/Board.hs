@@ -1,13 +1,14 @@
 ------------------------------------------------------------------------------------------------------------------------
 
-module Board(Board) where
+module Board(Board, ComponentType(..)) where
+
+import Data.Array.Repa
 
 ------------------------------------------------------------------------------------------------------------------------
 
-data Board = Board
-   {
-      bHight :: !Int,
-      bWidth :: !Int
-   }
+data ComponentType = Ct_I | Ct_J | Ct_L | Ct_S | Ct_T | Ct_Z | Ct_O
+   deriving(Enum, Show)
+
+type Board = Array U DIM2 (Maybe ComponentType)
 
 ------------------------------------------------------------------------------------------------------------------------
