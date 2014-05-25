@@ -133,7 +133,7 @@ collision :: Board -> Component -> Bool
 collision board component =
    foldl fun False (zip [0..(width - 1)] [0..(height - 1)]) 
    where
-      (Z :. height) :. width = extent board
+      (Z :. height) :. width = extent board :: DIM2
       (posX, posY) = cPosition component
       componentBitmap = componentBitmap (cType component) $ cOrientation component
       fun :: Bool -> (x, y) -> Bool
