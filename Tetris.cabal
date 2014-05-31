@@ -9,7 +9,8 @@ executable Tetris
   main-is:         Main.hs
   build-depends:   
                    base >= 4,
-                   repa >=3.2.3
+                   repa >=3.2.3,
+                   lens
   ghc-options:     -Wall -rtsopts -O2
   other-modules:   
                    Board,

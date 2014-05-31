@@ -6,6 +6,7 @@ module Component where
 
 import Data.Array.Repa
 import Data.Maybe(isJust)
+import Control.Lens.TH
    
 import Board as B
 
@@ -13,15 +14,25 @@ import Board as B
 
 data Component = Component
    {
-      cPosition :: !(Int, Int),
-      cType :: !ComponentType,
-      cOrientation :: !Orientation 
+      _cPosition :: !(Int, Int),
+      _cType :: !ComponentType,
+      _cOrientation :: !Orientation 
    }
    
-data Orientation = Or0 | Or90 | Or180 | Or270 
-   deriving(Enum, Show)
+makeLenses ''Component
+   
+   
+data Orientation = Or0 | Or90 | Or180 | Or270  deriving(Enum, Show)
    
 type Bitmap = Array U DIM2 Bool
+
+
+rotateOrientation :: Bool -> Orientation -> Orientation
+rotateOrientation True Or270 = Or0
+rotateOrientation True o = succ o
+rotateOrientation False Or0 = Or270
+rotateOrientation False o = pred o
+
 
 ctO0 :: Bitmap
 ctO0 = fromListUnboxed (Z :. 2 :. 2) [True, True,
@@ -140,12 +151,23 @@ collision board component =
       fun coll (x, y) = coll || bitmap ! (Z :. y :. x) && isJust (board  `at` (posX + x, posY + y))   
 
    
+transformComponent :: (Component -> Component) -> Board -> Component -> (Component, Bool)
+transformComponent transformFun board component = if collision board newComponent
+   then (component, True)
+   else (newComponent, False)
+   where
+      newComponent = transformFun component
+
 
 rotate :: Bool -> Board -> Component -> Component
-rotate clockwise board component = error "rotate not impelemented"
+rotate clockwise board component = res
+   where
+      (res, _) = transformComponent transformFun board component
+      transformFun c = c { cOrientation = rotateOrientation clockwise (cOrientation c) }
+    
 
-translation :: Board -> Component -> Component
-translation = error "translation not impelemented"
+translation :: Bool -> Board -> Component -> Component
+translation right board component = undefined
 
 fall :: Board -> Component -> (Bool, Component) 
 fall = error "fall not impelemented"
