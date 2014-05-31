@@ -7,7 +7,7 @@ module Component where
 import Data.Array.Repa
 import Data.Maybe(isJust)
    
-import Board(Board, ComponentType(..))
+import Board as B
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -133,16 +133,16 @@ collision :: Board -> Component -> Bool
 collision board component =
    foldl fun False (zip [0..(width - 1)] [0..(height - 1)]) 
    where
-      (Z :. height) :. width = extent board :: DIM2
+      (width, height) = B.extent board
       (posX, posY) = cPosition component
-      componentBitmap = componentBitmap (cType component) $ cOrientation component
-      fun :: Bool -> (x, y) -> Bool
-      fun coll (x, y) = coll || componentBitmap ! (Z :. y :. x) && isJust (board ! (Z :. (posX + x) :. (posY + y)))   
+      bitmap = componentBitmap (cType component) $ cOrientation component
+      fun :: Bool -> (Int, Int) -> Bool
+      fun coll (x, y) = coll || bitmap ! (Z :. y :. x) && isJust (board  `at` (posX + x, posY + y))   
 
    
 
-rotate :: Board -> Component -> Component
-rotate = error "rotate not impelemented"
+rotate :: Bool -> Board -> Component -> Component
+rotate clockwise board component = error "rotate not impelemented"
 
 translation :: Board -> Component -> Component
 translation = error "translation not impelemented"
