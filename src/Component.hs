@@ -170,9 +170,16 @@ rotate clockwise board component = res
     
 
 translation :: Bool -> Board -> Component -> Component
-translation right board component = undefined
+translation right board component = res
+   where
+      (res, _) = transformComponent transformFun board component
+      operation = if right then (\i -> i + 1) else (\i -> i - 1)
+      transformFun c = c & cPosition . _1 %~ operation
 
-fall :: Board -> Component -> (Bool, Component) 
-fall = error "fall not impelemented"
+
+fall :: Board -> Component -> (Component, Bool) 
+fall board component = transformComponent transformFun board component
+   where
+      transformFun c = c & cPosition . _2 %~ (+1)
 
 ------------------------------------------------------------------------------------------------------------------------
