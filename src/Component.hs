@@ -1,16 +1,21 @@
 
 ------------------------------------------------------------------------------------------------------------------------
 
+{-# LANGUAGE TemplateHaskell #-}
+
 module Component where
 
 
 import Data.Array.Repa
 import Data.Maybe(isJust)
 import Control.Lens.TH
+import Control.Lens
    
 import Board as B
 
 ------------------------------------------------------------------------------------------------------------------------
+
+data Orientation = Or0 | Or90 | Or180 | Or270  deriving(Enum, Show)
 
 data Component = Component
    {
@@ -20,18 +25,9 @@ data Component = Component
    }
    
 makeLenses ''Component
-   
-   
-data Orientation = Or0 | Or90 | Or180 | Or270  deriving(Enum, Show)
+
    
 type Bitmap = Array U DIM2 Bool
-
-
-rotateOrientation :: Bool -> Orientation -> Orientation
-rotateOrientation True Or270 = Or0
-rotateOrientation True o = succ o
-rotateOrientation False Or0 = Or270
-rotateOrientation False o = pred o
 
 
 ctO0 :: Bitmap
@@ -139,16 +135,23 @@ componentBitmap Ct_T orientation = [ctT0, ctT1, ctT2, ctT1] !! fromEnum orientat
 componentBitmap Ct_Z orientation = [ctZ0, ctZ1, ctZ0, ctZ1] !! fromEnum orientation
 componentBitmap Ct_O _ = ctO0
 
+
+rotateOrientation :: Bool -> Orientation -> Orientation
+rotateOrientation True Or270 = Or0
+rotateOrientation True o = succ o
+rotateOrientation False Or0 = Or270
+rotateOrientation False o = pred o
+
  
 collision :: Board -> Component -> Bool
 collision board component =
    foldl fun False (zip [0..(width - 1)] [0..(height - 1)]) 
    where
       (width, height) = B.extent board
-      (posX, posY) = cPosition component
-      bitmap = componentBitmap (cType component) $ cOrientation component
+      (posX, posY) = component ^. cPosition
+      bitmap = componentBitmap (component ^. cType) $ component ^. cOrientation
       fun :: Bool -> (Int, Int) -> Bool
-      fun coll (x, y) = coll || bitmap ! (Z :. y :. x) && isJust (board  `at` (posX + x, posY + y))   
+      fun coll (x, y) = coll || bitmap ! (Z :. y :. x) && isJust (board  `B.at` (posX + x, posY + y))   
 
    
 transformComponent :: (Component -> Component) -> Board -> Component -> (Component, Bool)
@@ -163,7 +166,7 @@ rotate :: Bool -> Board -> Component -> Component
 rotate clockwise board component = res
    where
       (res, _) = transformComponent transformFun board component
-      transformFun c = c { cOrientation = rotateOrientation clockwise (cOrientation c) }
+      transformFun c = c & cOrientation %~ rotateOrientation clockwise
     
 
 translation :: Bool -> Board -> Component -> Component

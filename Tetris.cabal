@@ -14,5 +14,6 @@ executable Tetris
   ghc-options:     -Wall -rtsopts -O2
   other-modules:   
                    Board,
-                   Component
+                   Component,
+                   GameState
 
