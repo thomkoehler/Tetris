@@ -23,4 +23,7 @@ makeLenses ''GameState
 instance Show GameState where
    show gs = undefined
 
+mergeBoardAndComponent :: GameState -> Board
+mergeBoardAndComponent = undefined
+
 ------------------------------------------------------------------------------------------------------------------------

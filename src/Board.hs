@@ -14,7 +14,7 @@ import Data.Array.Repa as R
 
 ------------------------------------------------------------------------------------------------------------------------
 
-data ComponentType = Ct_I | Ct_J | Ct_L | Ct_S | Ct_T | Ct_Z | Ct_O
+data ComponentType = CtI | CtJ | CtL | CtS | CtT | CtZ | CtO
    deriving(Enum, Show)
 
 newtype Board = Board (Array D DIM2 (Maybe ComponentType))

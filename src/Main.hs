@@ -1,7 +1,6 @@
 module Main where
 
-
+import GameState
 
 main::IO()
-main = do
-   putStrLn "Hallo"
+main = putStrLn "Hallo"

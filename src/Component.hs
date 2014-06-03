@@ -173,12 +173,14 @@ translation :: Bool -> Board -> Component -> Component
 translation right board component = res
    where
       (res, _) = transformComponent transformFun board component
-      operation = if right then (\i -> i + 1) else (\i -> i - 1)
+      inc n = n + 1
+      dec n = n - 1
+      operation = if right then inv else dec
       transformFun c = c & cPosition . _1 %~ operation
 
 
 fall :: Board -> Component -> (Component, Bool) 
-fall board component = transformComponent transformFun board component
+fall = transformComponent transformFun
    where
       transformFun c = c & cPosition . _2 %~ (+1)
 
