@@ -23,6 +23,7 @@ makeLenses ''GameState
 instance Show GameState where
    show gs = undefined
 
+--TODO mergeBoardAndComponent :: GameState -> Board
 mergeBoardAndComponent :: GameState -> Board
 mergeBoardAndComponent = undefined
 

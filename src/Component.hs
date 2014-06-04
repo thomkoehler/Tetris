@@ -3,10 +3,16 @@
 
 {-# LANGUAGE TemplateHaskell #-}
 
-module Component where
+module Component
+(
+   Component(..), 
+   Orientation(..), 
+   getAllPositions
+) 
+where
 
 
-import Data.Array.Repa
+import Data.Array.Repa as R
 import Data.Maybe(isJust)
 import Control.Lens.TH
 import Control.Lens
@@ -17,9 +23,11 @@ import Board as B
 
 data Orientation = Or0 | Or90 | Or180 | Or270  deriving(Enum, Show)
 
+type Position = (Int, Int)
+
 data Component = Component
    {
-      _cPosition :: !(Int, Int),
+      _cPosition :: !Position,
       _cType :: !ComponentType,
       _cOrientation :: !Orientation 
    }
@@ -127,13 +135,13 @@ ctZ1 = fromListUnboxed (Z :. 3 :. 3) [False, False, True,
                                       False, True, False]
 
 componentBitmap :: ComponentType -> Orientation -> Bitmap
-componentBitmap Ct_I orientation = [ctI0, ctI1, ctI0, ctI1] !! fromEnum orientation
-componentBitmap Ct_J orientation = [ctJ0, ctJ1, ctJ2, ctJ1] !! fromEnum orientation
-componentBitmap Ct_L orientation = [ctL0, ctL1, ctL2, ctL1] !! fromEnum orientation
-componentBitmap Ct_S orientation = [ctS0, ctS1, ctS0, ctS1] !! fromEnum orientation
-componentBitmap Ct_T orientation = [ctT0, ctT1, ctT2, ctT1] !! fromEnum orientation
-componentBitmap Ct_Z orientation = [ctZ0, ctZ1, ctZ0, ctZ1] !! fromEnum orientation
-componentBitmap Ct_O _ = ctO0
+componentBitmap CtI orientation = [ctI0, ctI1, ctI0, ctI1] !! fromEnum orientation
+componentBitmap CtJ orientation = [ctJ0, ctJ1, ctJ2, ctJ1] !! fromEnum orientation
+componentBitmap CtL orientation = [ctL0, ctL1, ctL2, ctL1] !! fromEnum orientation
+componentBitmap CtS orientation = [ctS0, ctS1, ctS0, ctS1] !! fromEnum orientation
+componentBitmap CtT orientation = [ctT0, ctT1, ctT2, ctT1] !! fromEnum orientation
+componentBitmap CtZ orientation = [ctZ0, ctZ1, ctZ0, ctZ1] !! fromEnum orientation
+componentBitmap CtO _ = ctO0
 
 
 rotateOrientation :: Bool -> Orientation -> Orientation
@@ -175,7 +183,7 @@ translation right board component = res
       (res, _) = transformComponent transformFun board component
       inc n = n + 1
       dec n = n - 1
-      operation = if right then inv else dec
+      operation = if right then inc else dec
       transformFun c = c & cPosition . _1 %~ operation
 
 
@@ -183,5 +191,15 @@ fall :: Board -> Component -> (Component, Bool)
 fall = transformComponent transformFun
    where
       transformFun c = c & cPosition . _2 %~ (+1)
+
+
+getAllPositions :: Component -> [Position]
+getAllPositions component = foldl step [] [(x,y) | x <- [0..w - 1], y <- [0..h - 1]]
+   where
+      bitmap = componentBitmap (component ^. cType) $ component ^. cOrientation  
+      (Z :. h :. w) = R.extent bitmap
+      (posY, posX) = component ^. cPosition
+      step prev (x,y) = if bitmap ! (Z :. y :. x) then (posX + x, posY + y) : prev else prev   
+
 
 ------------------------------------------------------------------------------------------------------------------------
