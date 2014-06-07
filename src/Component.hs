@@ -5,7 +5,7 @@
 
 module Component
 (
-   Component(..), 
+   Component, cPosition, cType, cOrientation,
    Orientation(..), 
    getAllPositions
 ) 
@@ -13,7 +13,6 @@ where
 
 
 import Data.Array.Repa as R
-import Data.Maybe(isJust)
 import Control.Lens.TH
 import Control.Lens
    
@@ -135,14 +134,16 @@ ctZ1 = fromListUnboxed (Z :. 3 :. 3) [False, False, True,
                                       False, True, False]
 
 componentBitmap :: ComponentType -> Orientation -> Bitmap
-componentBitmap CtI orientation = [ctI0, ctI1, ctI0, ctI1] !! fromEnum orientation
-componentBitmap CtJ orientation = [ctJ0, ctJ1, ctJ2, ctJ1] !! fromEnum orientation
-componentBitmap CtL orientation = [ctL0, ctL1, ctL2, ctL1] !! fromEnum orientation
-componentBitmap CtS orientation = [ctS0, ctS1, ctS0, ctS1] !! fromEnum orientation
-componentBitmap CtT orientation = [ctT0, ctT1, ctT2, ctT1] !! fromEnum orientation
-componentBitmap CtZ orientation = [ctZ0, ctZ1, ctZ0, ctZ1] !! fromEnum orientation
-componentBitmap CtO _ = ctO0
-
+componentBitmap ct orientation
+   | ct == ctI = [ctI0, ctI1, ctI0, ctI1] !! fromEnum orientation
+   | ct == ctJ = [ctJ0, ctJ1, ctJ2, ctJ3] !! fromEnum orientation
+   | ct == ctL = [ctL0, ctL1, ctL2, ctL3] !! fromEnum orientation
+   | ct == ctS = [ctS0, ctS1, ctS0, ctS1] !! fromEnum orientation
+   | ct == ctT = [ctT0, ctT1, ctT2, ctT3] !! fromEnum orientation
+   | ct == ctZ = [ctZ0, ctZ1, ctZ0, ctZ1] !! fromEnum orientation
+   | ct == ctO = ctO0
+   | otherwise = error "Unknown ComponentType encountered in componentBitmap."
+   
 
 rotateOrientation :: Bool -> Orientation -> Orientation
 rotateOrientation True Or270 = Or0
@@ -159,7 +160,7 @@ collision board component =
       (posX, posY) = component ^. cPosition
       bitmap = componentBitmap (component ^. cType) $ component ^. cOrientation
       fun :: Bool -> (Int, Int) -> Bool
-      fun coll (x, y) = coll || bitmap ! (Z :. y :. x) && isJust (board  `B.at` (posX + x, posY + y))   
+      fun coll (x, y) = coll || bitmap ! (Z :. y :. x) && (board  `B.at` (posX + x, posY + y) == ctEmpty)   
 
    
 transformComponent :: (Component -> Component) -> Board -> Component -> (Component, Bool)
