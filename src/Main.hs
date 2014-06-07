@@ -9,5 +9,6 @@ import Board
 main::IO()
 main = do 
    let
-      b = newBoard (10, 20) [ctEmpty..]
+      c = newComponent 5 ctZ
+      b = newEmptyBoard (10, 20)
    print b

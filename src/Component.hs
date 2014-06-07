@@ -6,6 +6,7 @@
 module Component
 (
    Component, cPosition, cType, cOrientation,
+   newComponent,
    Orientation(..), 
    getAllPositions
 ) 
@@ -143,7 +144,11 @@ componentBitmap ct orientation
    | ct == ctZ = [ctZ0, ctZ1, ctZ0, ctZ1] !! fromEnum orientation
    | ct == ctO = ctO0
    | otherwise = error "Unknown ComponentType encountered in componentBitmap."
+
    
+newComponent :: Int -> ComponentType -> Component
+newComponent posX ct = Component (posX, 0) ct Or0
+
 
 rotateOrientation :: Bool -> Orientation -> Orientation
 rotateOrientation True Or270 = Or0
