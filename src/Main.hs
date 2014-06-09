@@ -10,5 +10,6 @@ main::IO()
 main = do 
    let
       c = newComponent 5 ctZ
-      b = newEmptyBoard (10, 20)
-   print b
+      b = newEmptyBoard (30, 40)
+      mb = mergeBordWithComponent c b
+   print mb

@@ -1,13 +1,12 @@
 ------------------------------------------------------------------------------------------------------------------------
 
-
-
 module Board
 (
    Board, 
    Board.extent,
    Board.at,
-   newEmptyBoard
+   newEmptyBoard,
+   mergeBordWithComponent
 ) where
 
 import Data.Array.Repa as R
@@ -53,37 +52,26 @@ instance Show Board where
                [c] = show $ board `Board.at` (x, y)   
            
            
---TODO mergeBordWithComponent :: Component -> Board -> Board
 mergeBordWithComponent :: Component -> Board -> Board
-mergeBordWithComponent = undefined
-  
-
-{--
-
-
-mergeBoardAndComponent :: GameState -> Board
-mergeBoardAndComponent gameState = newBoard (w, h) components 
+mergeBordWithComponent component (Board array) = Board $ computeUnboxedS $ R.traverse array id step
    where
-      board = gameState ^. gsBoard
-      (w, h) = extent board
-      componentType = gameState ^. gsCurrentComponent . cType
-      componentPositions = getAllPositions $ gameState ^. gsCurrentComponent 
-      components = Prelude.reverse $ foldl step [] [(x,y) | x <- [0..w - 1], y <- [0..h - 1]]
-      step prev pos = if elem pos componentPositions
-         then componentType : prev
-         else board `Board.at` pos : prev
+      componentPositions = getAllPositions component
+      componentType = component ^. cType
+      step getFun pos@(Z :. y :. x) =
+         if elem (x, y) componentPositions
+            then fromEnum componentType
+            else getFun pos
 
---}
 
 collision :: Board -> Component -> Bool
 collision board component =
-   foldl fun False (zip [0..(width - 1)] [0..(height - 1)]) 
+   foldl step False (zip [0..(width - 1)] [0..(height - 1)]) 
    where
       (width, height) = Board.extent board
       (posX, posY) = component ^. cPosition
       bitmap = componentBitmap (component ^. cType) $ component ^. cOrientation
-      fun :: Bool -> (Int, Int) -> Bool
-      fun coll (x, y) = coll || bitmap ! (Z :. y :. x) && (board  `Board.at` (posX + x, posY + y) == ctEmpty)   
+      step :: Bool -> (Int, Int) -> Bool
+      step coll (x, y) = coll || bitmap ! (Z :. y :. x) && (board  `Board.at` (posX + x, posY + y) == ctEmpty)   
 
    
 transformComponent :: (Component -> Component) -> Board -> Component -> (Component, Bool)
