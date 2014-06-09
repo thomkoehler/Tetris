@@ -1,14 +1,19 @@
 
 ------------------------------------------------------------------------------------------------------------------------
 
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell, TypeOperators, GeneralizedNewtypeDeriving, StandaloneDeriving #-}
 
 module Component
 (
-   Component, cPosition, cType, cOrientation,
+   Component,
+   Position,
+   ComponentType, ctEmpty, ctI, ctJ, ctL, ctS, ctT, ctZ, ctO, 
+   cPosition, cType, cOrientation,
    newComponent,
    Orientation(..), 
-   getAllPositions
+   rotateOrientation,
+   getAllPositions,
+   componentBitmap
 ) 
 where
 
@@ -17,9 +22,26 @@ import Data.Array.Repa as R
 import Control.Lens.TH
 import Control.Lens
    
-import Board as B
-
 ------------------------------------------------------------------------------------------------------------------------
+
+newtype ComponentType = ComponentType Int deriving (Eq, Ord, Enum)
+(ctEmpty:ctI:ctJ:ctL:ctS:ctT:ctZ:ctO:_) = [ComponentType 0..]
+
+ctEmpty, ctI, ctJ, ctL, ctS, ctT, ctZ, ctO :: ComponentType
+
+
+instance Show ComponentType  where
+   show ct 
+      | ct == ctEmpty = "."
+      | ct == ctI = "I"
+      | ct == ctJ = "J"
+      | ct == ctL = "L"
+      | ct == ctS = "S"
+      | ct == ctT = "T"
+      | ct == ctZ = "Z"
+      | ct == ctO = "O"
+      | otherwise = error "Unknown ComponentType encountered in show ComponentType."
+
 
 data Orientation = Or0 | Or90 | Or180 | Or270  deriving(Enum, Show)
 
@@ -157,48 +179,6 @@ rotateOrientation False Or0 = Or270
 rotateOrientation False o = pred o
 
  
-collision :: Board -> Component -> Bool
-collision board component =
-   foldl fun False (zip [0..(width - 1)] [0..(height - 1)]) 
-   where
-      (width, height) = B.extent board
-      (posX, posY) = component ^. cPosition
-      bitmap = componentBitmap (component ^. cType) $ component ^. cOrientation
-      fun :: Bool -> (Int, Int) -> Bool
-      fun coll (x, y) = coll || bitmap ! (Z :. y :. x) && (board  `B.at` (posX + x, posY + y) == ctEmpty)   
-
-   
-transformComponent :: (Component -> Component) -> Board -> Component -> (Component, Bool)
-transformComponent transformFun board component = if collision board newComponent
-   then (component, True)
-   else (newComponent, False)
-   where
-      newComponent = transformFun component
-
-
-rotate :: Bool -> Board -> Component -> Component
-rotate clockwise board component = res
-   where
-      (res, _) = transformComponent transformFun board component
-      transformFun c = c & cOrientation %~ rotateOrientation clockwise
-    
-
-translation :: Bool -> Board -> Component -> Component
-translation right board component = res
-   where
-      (res, _) = transformComponent transformFun board component
-      inc n = n + 1
-      dec n = n - 1
-      operation = if right then inc else dec
-      transformFun c = c & cPosition . _1 %~ operation
-
-
-fall :: Board -> Component -> (Component, Bool) 
-fall = transformComponent transformFun
-   where
-      transformFun c = c & cPosition . _2 %~ (+1)
-
-
 getAllPositions :: Component -> [Position]
 getAllPositions component = foldl step [] [(x,y) | x <- [0..w - 1], y <- [0..h - 1]]
    where

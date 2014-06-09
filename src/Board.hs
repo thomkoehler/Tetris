@@ -1,38 +1,21 @@
 ------------------------------------------------------------------------------------------------------------------------
 
-{-# LANGUAGE TypeOperators, GeneralizedNewtypeDeriving, StandaloneDeriving #-}
+
 
 module Board
 (
    Board, 
-   ComponentType, ctEmpty, ctI, ctJ, ctL, ctS, ctT, ctZ, ctO,
    Board.extent,
-   at,
+   Board.at,
    newEmptyBoard
 ) where
 
 import Data.Array.Repa as R
+import Control.Lens
+
+import Component
 
 ------------------------------------------------------------------------------------------------------------------------
-
-newtype ComponentType = ComponentType Int deriving (Eq, Ord, Enum)
-(ctEmpty:ctI:ctJ:ctL:ctS:ctT:ctZ:ctO:_) = [ComponentType 0..]
-
-ctEmpty, ctI, ctJ, ctL, ctS, ctT, ctZ, ctO :: ComponentType
-
-
-instance Show ComponentType  where
-   show ct 
-      | ct == ctEmpty = "."
-      | ct == ctI = "I"
-      | ct == ctJ = "J"
-      | ct == ctL = "L"
-      | ct == ctS = "S"
-      | ct == ctT = "T"
-      | ct == ctZ = "Z"
-      | ct == ctO = "O"
-      | otherwise = error "Unknown ComponentType encountered in show ComponentType."
-
 
 newtype Board = Board (Array U DIM2 Int)
 
@@ -50,7 +33,7 @@ extent (Board a) =
 
       
 at :: Board -> (Int, Int) -> ComponentType
-at (Board a) (x, y) = ComponentType $ a ! (Z :. y :. x)
+at (Board a) (x, y) = toEnum $ a ! (Z :. y :. x)
 
  
 instance Show Board where
@@ -67,13 +50,13 @@ instance Show Board where
                   else c : prev
             
             where
-               [c] = show $ board `at` (x, y)   
+               [c] = show $ board `Board.at` (x, y)   
            
-
+           
+--TODO mergeBordWithComponent :: Component -> Board -> Board
 mergeBordWithComponent :: Component -> Board -> Board
-mergeBordWithComponent = computeUnboxedS unboxed
-   where
-       
+mergeBordWithComponent = undefined
+  
 
 {--
 
@@ -91,5 +74,47 @@ mergeBoardAndComponent gameState = newBoard (w, h) components
          else board `Board.at` pos : prev
 
 --}
+
+collision :: Board -> Component -> Bool
+collision board component =
+   foldl fun False (zip [0..(width - 1)] [0..(height - 1)]) 
+   where
+      (width, height) = Board.extent board
+      (posX, posY) = component ^. cPosition
+      bitmap = componentBitmap (component ^. cType) $ component ^. cOrientation
+      fun :: Bool -> (Int, Int) -> Bool
+      fun coll (x, y) = coll || bitmap ! (Z :. y :. x) && (board  `Board.at` (posX + x, posY + y) == ctEmpty)   
+
+   
+transformComponent :: (Component -> Component) -> Board -> Component -> (Component, Bool)
+transformComponent transformFun board component = if collision board newComponent
+   then (component, True)
+   else (newComponent, False)
+   where
+      newComponent = transformFun component
+
+
+rotate :: Bool -> Board -> Component -> Component
+rotate clockwise board component = res
+   where
+      (res, _) = transformComponent transformFun board component
+      transformFun c = c & cOrientation %~ rotateOrientation clockwise
+    
+
+translation :: Bool -> Board -> Component -> Component
+translation right board component = res
+   where
+      (res, _) = transformComponent transformFun board component
+      inc n = n + 1
+      dec n = n - 1
+      operation = if right then inc else dec
+      transformFun c = c & cPosition . _1 %~ operation
+
+
+fall :: Board -> Component -> (Component, Bool) 
+fall = transformComponent transformFun
+   where
+      transformFun c = c & cPosition . _2 %~ (+1)
+
 
 ------------------------------------------------------------------------------------------------------------------------
