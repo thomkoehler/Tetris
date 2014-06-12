@@ -6,7 +6,10 @@ module Board
    Board.extent,
    Board.at,
    newEmptyBoard,
-   mergeBordWithComponent
+   mergeBordWithComponent,
+   rotate,
+   translation,
+   fall
 ) where
 
 import Data.Array.Repa as R

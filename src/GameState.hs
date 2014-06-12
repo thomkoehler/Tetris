@@ -5,7 +5,8 @@
 module GameState
 (
    nextStep,
-   Move(..)
+   Move(..),
+   newGameState
 )
 where
 
@@ -31,12 +32,17 @@ makeLenses ''GameState
 instance Show GameState where
    show (GameState board currComponent) = show $ mergeBordWithComponent currComponent board
    
-
---TODO move :: Move -> GameState -> (GameState, Bool)
-nextStep :: Move -> GameState -> (GameState, Bool)
-nextStep move gs
-   | move == MLeft || move == MRight = (gs & gsCurrentComponent %~ rotate (move == MRight), False)
-   | otherwise                       = (gs, False)
    
+newGameState :: (Int, Int) -> ComponentType -> GameState
+newGameState extend@(w, _) componentType = GameState (newEmptyBoard extend) $ newComponent (w `quot` 2) componentType
+
+
+nextStep :: Move -> GameState -> (GameState, Bool)
+nextStep move gs@(GameState board currentComponent)
+   | move == MLeft || move == MRight          = (gs & gsCurrentComponent %~ translation (move == MRight) board, False)
+   | move == MRotClock || move == MRotUnclock = (gs & gsCurrentComponent %~ rotate (move == MRotClock) board, False)
+   | otherwise                                = (gs { _gsCurrentComponent = component }, isDown)
+      where
+         (component, isDown) = fall board currentComponent 
 
 ------------------------------------------------------------------------------------------------------------------------

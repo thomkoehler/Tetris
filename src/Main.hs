@@ -1,15 +1,15 @@
 module Main where
 
+import GameState
 import Component
-import Board
-
---c0 = Component (2, 3) CtZ Or90
 
 
 main::IO()
 main = do 
    let
-      c = newComponent 5 ctZ
-      b = newEmptyBoard (30, 40)
-      mb = mergeBordWithComponent c b
-   print mb
+      gs0 = newGameState (10, 20) ctZ
+      (gs1, _) = nextStep MRight gs0
+      (gs2, _) = nextStep MRight gs1
+   print gs0
+   print gs1
+   print gs2
