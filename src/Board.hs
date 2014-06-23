@@ -17,6 +17,9 @@ import Control.Lens
 
 import Component
 
+--TODO remove import Debug.Trace
+import Debug.Trace
+
 ------------------------------------------------------------------------------------------------------------------------
 
 newtype Board = Board (Array U DIM2 Int)
@@ -56,9 +59,8 @@ mergeBordWithComponent component (Board array) = Board $ computeUnboxedS $ R.tra
    where
       componentPositions = getAllPositions component
       componentType = component ^. cType
-      (posX, posY) = component ^. cPosition
       step getFun pos@(Z :. y :. x) =
-         if (x - posX, y - posY) `elem` componentPositions
+         if (x, y) `elem` componentPositions
             then fromEnum componentType
             else getFun pos
 

@@ -184,7 +184,7 @@ getAllPositions component = foldl step [] [(x,y) | x <- [0..w - 1], y <- [0..h -
    where
       bitmap = componentBitmap (component ^. cType) $ component ^. cOrientation  
       (Z :. h :. w) = R.extent bitmap
-      (posY, posX) = component ^. cPosition
+      (posX, posY) = component ^. cPosition
       step prev (x,y) = if bitmap ! (Z :. y :. x) then (posX + x, posY + y) : prev else prev   
 
 
