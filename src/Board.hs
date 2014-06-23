@@ -44,15 +44,11 @@ instance Show Board where
          top = reverse $ foldl step "" [(x,y) | y <- [0..h - 1], x <- [0..w - 1]]
          ground = replicate (w + 2) '#'
          (w, h) = Board.extent board
-         step prev (x, y) = 
-            if x == 0
-               then c : '#' : prev
-               else if x == w - 1
-                  then '\n' : '#' : c : prev
-                  else c : prev
-            
-            where
-               [c] = show $ board `Board.at` (x, y)   
+         step prev (x, y)
+           | x == 0     = c : '#' : prev
+           | x == w - 1 = '\n' : '#' : c : prev
+           | otherwise  = c : prev
+               where [c] = show $ board `Board.at` (x, y)   
            
            
 mergeBordWithComponent :: Component -> Board -> Board
@@ -60,8 +56,9 @@ mergeBordWithComponent component (Board array) = Board $ computeUnboxedS $ R.tra
    where
       componentPositions = getAllPositions component
       componentType = component ^. cType
+      (posX, posY) = component ^. cPosition
       step getFun pos@(Z :. y :. x) =
-         if elem (x, y) componentPositions
+         if (x - posX, y - posY) `elem` componentPositions
             then fromEnum componentType
             else getFun pos
 
@@ -78,11 +75,11 @@ collision board component =
 
    
 transformComponent :: (Component -> Component) -> Board -> Component -> (Component, Bool)
-transformComponent transformFun board component = if collision board newComponent
+transformComponent transformFun board component = if collision board nc
    then (component, True)
-   else (newComponent, False)
+   else (nc, False)
    where
-      newComponent = transformFun component
+      nc = transformFun component
 
 
 rotate :: Bool -> Board -> Component -> Component
