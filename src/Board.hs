@@ -63,11 +63,12 @@ mergeBordWithComponent component (Board array) = Board $ computeUnboxedS $ R.tra
 
 
 collision :: Board -> Component -> Bool
-collision board component = foldl step False allPositions 
+collision board component = any outOfRange allPositions || foldl step False allPositions 
    where
       allPositions = getAllPositions component 
-      step :: Bool -> (Int, Int) -> Bool
+      (w, h) = Board.extent board
       step coll (x, y) = coll || (board  `Board.at` (x, y) /= ctEmpty)
+      outOfRange (x, y) = x < 0 || y < 0 || x >= w || y >= h
 
 
 transformComponent :: (Component -> Component) -> Board -> Component -> (Component, Bool)
