@@ -13,7 +13,7 @@ test0 = do
    let
       gs0 = newGameState (10, 20) ctI
       (gs1, _) = nextStep MLeft gs0
-      (gs2, _) = nextStep MLeft gs1
+      (gs2, _) = nextStep MRotClock gs1
    print gs0
    print gs1
    print gs2

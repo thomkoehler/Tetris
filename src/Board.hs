@@ -17,9 +17,6 @@ import Control.Lens
 
 import Component
 
---TODO remove import Debug.Trace
-import Debug.Trace
-
 ------------------------------------------------------------------------------------------------------------------------
 
 newtype Board = Board (Array U DIM2 Int)
@@ -66,16 +63,13 @@ mergeBordWithComponent component (Board array) = Board $ computeUnboxedS $ R.tra
 
 
 collision :: Board -> Component -> Bool
-collision board component =
-   foldl step False (zip [0..(width - 1)] [0..(height - 1)]) 
+collision board component = foldl step False allPositions 
    where
-      (width, height) = Board.extent board
-      (posX, posY) = component ^. cPosition
-      bitmap = componentBitmap (component ^. cType) $ component ^. cOrientation
+      allPositions = getAllPositions component 
       step :: Bool -> (Int, Int) -> Bool
-      step coll (x, y) = coll || bitmap ! (Z :. y :. x) && (board  `Board.at` (posX + x, posY + y) == ctEmpty)   
+      step coll (x, y) = coll || (board  `Board.at` (x, y) /= ctEmpty)
 
-   
+
 transformComponent :: (Component -> Component) -> Board -> Component -> (Component, Bool)
 transformComponent transformFun board component = if collision board nc
    then (component, True)
