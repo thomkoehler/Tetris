@@ -4,8 +4,10 @@ import GameState
 import Component
 import Board
 
+import System.Exit(exitSuccess)
 
-main = test0
+
+main = test
 
 
 test0 :: IO()
@@ -27,3 +29,30 @@ test1 = do
    
    print pos0
    print mb0
+
+   
+test :: IO ()
+test = do
+   let
+      gs = newGameState (10, 20) ctI
+   gameLoop gs
+   
+   where
+      gameLoop gameState = do
+         print gameState
+         (key : _) <- getLine
+         let
+            (nextGameState, exit) =
+               case key of
+                  'a' -> (fst $ nextStep MLeft gameState, False)
+                  'd' -> (fst $ nextStep MRight gameState, False)
+                  'w' -> (fst $ nextStep MRotUnclock gameState, False)
+                  's' -> (fst $ nextStep MRotClock gameState, False)
+                  ' ' -> (fst $ nextStep MNone gameState, False)
+                  _   -> (gameState, True)
+                  
+         if exit 
+            then exitSuccess 
+            else gameLoop nextGameState 
+            
+   
