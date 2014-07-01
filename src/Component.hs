@@ -21,6 +21,7 @@ where
 import Data.Array.Repa as R
 import Control.Lens.TH
 import Control.Lens
+import System.Random
    
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -41,6 +42,20 @@ instance Show ComponentType  where
       | ct == ctZ = "Z"
       | ct == ctO = "O"
       | otherwise = error "Unknown ComponentType encountered in show ComponentType."
+
+
+instance Random ComponentType where
+   random gen = 
+      let
+         (i,newGen) = randomR (fromEnum ctI, fromEnum ctO) gen
+      in
+         (ComponentType i, newGen)
+         
+   randomR (fromR, toR) gen =
+      let
+         (i,newGen) = randomR (fromEnum fromR, fromEnum toR) gen
+      in
+         (ComponentType i, newGen)
 
 
 data Orientation = Or0 | Or90 | Or180 | Or270  deriving(Enum, Show)

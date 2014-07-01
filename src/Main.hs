@@ -5,6 +5,7 @@ import Component
 import Board
 
 import System.Exit(exitSuccess)
+import System.Random
 
 
 main = test
@@ -33,8 +34,11 @@ test1 = do
    
 test :: IO ()
 test = do
+   randomGen <- getStdGen
    let
-      gs = newGameState (10, 20) ctI
+      (componentType, _) = random randomGen
+      gs = newGameState (15, 20) componentType
+      
    gameLoop gs
    
    where

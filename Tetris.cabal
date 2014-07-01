@@ -10,7 +10,8 @@ executable Tetris
   build-depends:   
                    base >= 4,
                    repa >=3.2.3,
-                   lens
+                   lens,
+                   random
   ghc-options:     -Wall -rtsopts -O2
   other-modules:   
                    Board,
